@@ -46,7 +46,7 @@ class Bot
 {
   public static void main(String args[])
   {
-    bot = Wechaty.instance();
+    bot = Wechaty.instance()
       .on('scan', (qrcode, status string) -> System.out.println('Scan QR Code to login: %s\nhttps://api.qrserver.com/v1/create-qr-code/?data=%s', status, encodeURIComponent(qrcode)))
       .on('login', user -> System.out.println('User %s logined', user))
       .on('message', message -> System.out.println('Message: %s', message))
