@@ -42,15 +42,13 @@ Scan now, because other Wechaty Java developers want to talk with you too! (secr
 ## The World's Shortest Java ChatBot: 6 lines of Code
 
 ```java
-class Bot
-{
-  public static void main(String args[])
-  {
+class Bot{
+  public static void main(String args[]){
     bot = Wechaty.instance()
       .on('scan', (qrcode, status string) -> System.out.println('Scan QR Code to login: %s\nhttps://api.qrserver.com/v1/create-qr-code/?data=%s', status, encodeURIComponent(qrcode)))
       .on('login', user -> System.out.println('User %s logined', user))
       .on('message', message -> System.out.println('Message: %s', message))
-      .start()
+      .start();
   }
 }
 ```
@@ -221,7 +219,7 @@ WIP...
 ## Install
 
 ```shell
-marven install wechaty
+mvn install wechaty
 ```
 
 ## See Also
