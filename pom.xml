@@ -97,13 +97,6 @@
             </dependency>
 
 
-<!--            &lt;!&ndash; https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp-ws &ndash;&gt;-->
-<!--            <dependency>-->
-<!--                <groupId>com.squareup.okhttp3</groupId>-->
-<!--                <artifactId>okhttp-ws</artifactId>-->
-<!--                <version>3.4.2</version>-->
-<!--            </dependency>-->
-
             <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core -->
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
@@ -131,6 +124,18 @@
                 <version>2.8.1</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.jooq</groupId>
+                <artifactId>jool</artifactId>
+                <version>0.9.12</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-collections4 -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-collections4</artifactId>
+                <version>4.4</version>
+            </dependency>
 
 
 
