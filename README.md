@@ -47,7 +47,7 @@ class Bot
 {
   public static void main(String args[])
   {
-    bot = Wechaty.instance();
+    bot = Wechaty.instance()
       .on('scan', (qrcode, status string) -> System.out.println('Scan QR Code to login: %s\nhttps://api.qrserver.com/v1/create-qr-code/?data=%s', status, encodeURIComponent(qrcode)))
       .on('login', user -> System.out.println('User %s logined', user))
       .on('message', message -> System.out.println('Message: %s', message))
@@ -106,7 +106,7 @@ It is a great example for demonstrating how do we translate the TypeScript to Ja
 ### Image Class Source Code
 
 - TypeScript: <https://github.com/wechaty/wechaty/blob/master/src/user/image.ts>
-- Java: <https://github.com/wechaty/java-wechaty/blob/master/src/wechaty/user/images.py>
+- Java: <https://github.com/wechaty/java-wechaty/blob/master/src/wechaty/user/image.py>
 
 If you are interested in the translation and want to look at how it works, it will be a good start from reading and comparing those two `Image` class files in TypeScript and Java at the same time.
 
