@@ -16,7 +16,6 @@ import org.jooq.lambda.function.Function1;
 import org.jooq.lambda.function.Function2;
 import org.jooq.lambda.function.Function3;
 import org.jooq.lambda.function.Function4;
-import sun.awt.FullScreenCapable;
 
 import java.io.File;
 import java.lang.reflect.Method;

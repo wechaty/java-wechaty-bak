@@ -1,6 +1,6 @@
 package io.github.wechaty.schemas;
 
-public class event {
+public class Event {
 
     enum ScanStatus{
         Unknown(-1),

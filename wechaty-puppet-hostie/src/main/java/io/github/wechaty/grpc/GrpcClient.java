@@ -2,6 +2,8 @@ package io.github.wechaty.grpc;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.github.wechaty.Puppet;
+import io.github.wechaty.schemas.Contact;
+import io.github.wechaty.schemas.Room;
 import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
@@ -11,7 +13,9 @@ import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -65,17 +69,152 @@ public class GrpcClient extends Puppet {
 
 
     @Override
-    public Promise<Void> start() {
+    public Future<Void> start() {
         return null;
     }
 
     @Override
-    public Promise<Void> end() {
+    public Future<Void> end() {
         return null;
     }
 
     @Override
-    public Promise<Void> logout() {
+    public Future<Void> logout() {
+        return null;
+    }
+
+    @Override
+    public void ding(String data) {
+
+    }
+
+    @Override
+    public Future<Void> contractSelfName(String name) {
+        return null;
+    }
+
+    @Override
+    public Future<String> contactSelfQRCode() {
+        return null;
+    }
+
+    @Override
+    public Future<Void> contactSelfSignature(String signature) {
+        return null;
+    }
+
+    @Override
+    public Future<Void> tagContactAdd(String tagId, String contactId) {
+        return null;
+    }
+
+    @Override
+    public Future<Void> tagContactDelete(String tagId) {
+        return null;
+    }
+
+    @Override
+    public Future<List<String>> tagContactList(String contactId) {
+        return null;
+    }
+
+    @Override
+    public Future<List<String>> tagContactList() {
+        return null;
+    }
+
+    @Override
+    public Future<Void> tagContactRemove(String tagId, String contactId) {
+        return null;
+    }
+
+    @Override
+    public Future<String> contactAlias(String contactId) {
+        return null;
+    }
+
+    @Override
+    public Future<Void> contactAlias(String contactId, String alias) {
+        return null;
+    }
+
+    @Override
+    public Future<File> contactAvatar(String contactId) {
+        return null;
+    }
+
+    @Override
+    public Future<Void> contactAvatar(String contactId, File file) {
+        return null;
+    }
+
+    @Override
+    public Future<List<String>> contactList() {
+        return null;
+    }
+
+    @Override
+    protected Future<Object> contactRawPayload(String contractId) {
+        return null;
+    }
+
+    @Override
+    protected Future<Contact.ContactPayload> contactRawPlayloadParser(Object rawPayload) {
+        return null;
+    }
+
+    @Override
+    public Future<Void> roomAdd(String roomId, String contactId) {
+        return null;
+    }
+
+    @Override
+    public Future<File> roomAvatar(String roomId) {
+        return null;
+    }
+
+    @Override
+    public Future<String> roomCreate(List<String> contactIdList, String topic) {
+        return null;
+    }
+
+    @Override
+    public Future<String> roomDel(String roomId, String contactId) {
+        return null;
+    }
+
+    @Override
+    public Future<List<String>> roomList() {
+        return null;
+    }
+
+    @Override
+    public Future<String> roomQRCode(String roomId) {
+        return null;
+    }
+
+    @Override
+    public Future<Void> roomQuit(String roomId) {
+        return null;
+    }
+
+    @Override
+    public Future<String> roomTopic(String roomId) {
+        return null;
+    }
+
+    @Override
+    public Future<Void> roomTopic(String roomId, String topic) {
+        return null;
+    }
+
+    @Override
+    public Future<Object> roomRawPayload(String roomId) {
+        return null;
+    }
+
+    @Override
+    public Future<Room.RoomPayload> roomRawPayloadParser(Object any) {
         return null;
     }
 
