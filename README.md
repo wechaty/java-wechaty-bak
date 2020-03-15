@@ -4,6 +4,8 @@
 
 ## Connecting Chatbots
 
+[![Powered by Wechaty](https://img.shields.io/badge/Powered%20By-Wechaty-brightgreen.svg)](https://github.com/Wechaty/wechaty)
+
 Wechaty is a RPA SDK for Wechat **Individual** Account that can help you create a chatbot in 6 lines of Java.
 
 ## WORK IN PROGRESS
@@ -103,7 +105,7 @@ It is a great example for demonstrating how do we translate the TypeScript to Ja
 ### Image Class Source Code
 
 - TypeScript: <https://github.com/wechaty/wechaty/blob/master/src/user/image.ts>
-- Java: <https://github.com/wechaty/java-wechaty/blob/master/src/wechaty/user/images.py>
+- Java: <https://github.com/wechaty/java-wechaty/blob/master/src/wechaty/user/image.py>
 
 If you are interested in the translation and want to look at how it works, it will be a good start from reading and comparing those two `Image` class files in TypeScript and Java at the same time.
 
