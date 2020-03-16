@@ -3,24 +3,26 @@ package io.github.wechaty;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import io.github.wechaty.Utils.FutureUtils;
+import io.github.wechaty.listener.DongListener;
+import io.github.wechaty.listener.FriendshipListener;
 import io.github.wechaty.schemas.*;
+import io.github.wechaty.schemas.Friendship.FriendshipPayload;
 import io.github.wechaty.schemas.Room.RoomMemberPayload;
 import io.github.wechaty.schemas.Room.RoomPayload;
-import io.vertx.core.*;
+import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jooq.lambda.function.Function1;
-import org.jooq.lambda.function.Function2;
-import org.jooq.lambda.function.Function3;
-import org.jooq.lambda.function.Function4;
 
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
+import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
@@ -67,20 +69,15 @@ public abstract class Puppet {
         eb.publish(event, args);
     }
 
-    public Puppet on(String event, Function2 function1){
+    public Puppet on(String event, DongListener listener){
         return this;
     }
 
-
-    public Puppet on(String event, Function3 function1){
-        return this;
-    }
-
-    public Puppet on(String event, Function1 function1){
-        return this;
-    }
-
-    public Puppet on(String event, Function4 function1){
+    public Puppet on(String event, FriendshipListener listener){
+        eb.consumer(event,t ->{
+            String friendshipId = (String) t.body();
+            listener.execute(friendshipId);
+        });
         return this;
     }
 
@@ -90,14 +87,13 @@ public abstract class Puppet {
 
     protected Future<Void> login(String userId) {
         log.info("Puppet login in ({})",userId);
-        Promise<Void> promise = Promise.promise();
-        if(StringUtils.isNotBlank(userId)){
-            throw new RuntimeException("must logout first before login again!");
-        }
-        this.id = userId;
-        this.emit("login",userId);
-        promise.complete();
-        return promise.future();
+        return CompletableFuture.runAsync(()->{
+            if(StringUtils.isNotBlank(userId)){
+                throw new RuntimeException("must logout first before login again!");
+            }
+            this.id = userId;
+            this.emit("login",userId);
+        });
     }
     public abstract Future<Void> logout();
 
@@ -171,116 +167,118 @@ public abstract class Puppet {
 
         log.info("contractId is {}",contactId);
 
-        Promise<List<String>> promise = Promise.promise();
+        try {
+            List<String> roomList = roomList().get();
 
-        Future<List<String>> future = roomList();
+            List<CompletableFuture<RoomPayload>> collect = roomList.stream()
+                .map(this::roomPayload)
+                .map(FutureUtils::toCompletable)
+                .collect(Collectors.toList());
 
-        List<String> roomIdList = future.result();
+            CompletableFuture<List<RoomPayload>> resultRoomIdList = FutureUtils.sequence(collect);
 
-        List<Future<RoomPayload>> collect = roomIdList.stream().map(this::roomPayload).collect(Collectors.toList());
+            List<RoomPayload> roomPayloadList = resultRoomIdList.get();
 
-        CompositeFuture all = CompositeFuture.all(new ArrayList<>(collect));
+            List<String> result = roomPayloadList.stream().filter(t -> {
+                List<String> memberIdList = t.getMemberIdList();
+                return memberIdList.contains(contactId);
+            }).map(RoomPayload::getId).collect(Collectors.toList());
 
-        List<RoomPayload> roomPayloadList = all.list();
+            return CompletableFuture.completedFuture(result);
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
 
-        List<String> collect1 = roomPayloadList.stream().filter(t -> {
-            List<String> memberIdList = t.getMemberIdList();
-            return memberIdList.contains(contactId);
-        }).map(RoomPayload::getId).collect(Collectors.toList());
-
-        promise.complete(collect1);
-        return promise.future();
+        return CompletableFuture.completedFuture(Lists.newArrayList());
     }
 
     public Future<Void> contactPayloadDirty(String contactId){
-        Promise<Void> promise = Promise.promise();
-        log.info("contractId is {}",contactId);
         cacheRoomPayload.invalidate(contactId);
-        promise.complete();
-        return promise.future();
+        return CompletableFuture.completedFuture(null);
     }
 
-    public Future<List<String>> contactSearch(String query,List<String> searchIdList){
-        log.info("query {},searchIdList {}",query,searchIdList);
-
-        Promise<List<String>> promise = Promise.promise();
-
-        if(CollectionUtils.isEmpty(searchIdList)){
-            Future<List<String>> listFuture = contactList();
-            searchIdList= listFuture.result();
-        }
-
-        log.info("searchIdList length {}",searchIdList.size());
-
-        if(query == null){
-            promise.complete(searchIdList);
-            return promise.future();
-        }
-
-        Contact.ContactQueryFilter nameFilter = new Contact.ContactQueryFilter();
-        Contact.ContactQueryFilter aliasFilter = new Contact.ContactQueryFilter();
-        nameFilter.setName(query);
-        aliasFilter.setAlias(query);
-        Future<List<String>> future = contactSearch(nameFilter, searchIdList);
-        Future<List<String>> future1 = contactSearch(aliasFilter, searchIdList);
-
-        CompositeFuture compositeFuture = CompositeFuture.all(future,future1);
-
-        List<List<String>> list = compositeFuture.list();
-        List<String> collect = list.stream().flatMap(Collection::stream).collect(Collectors.toList());
-
-        promise.complete(collect);
-        return promise.future();
-    }
+//    public Future<List<String>> contactSearch(String query,List<String> searchIdList){
+//        log.info("query {},searchIdList {}",query,searchIdList);
+//
+//        Promise<List<String>> promise = Promise.promise();
+//
+//        if(CollectionUtils.isEmpty(searchIdList)){
+//            Future<List<String>> listFuture = contactList();
+//            searchIdList= listFuture.get();
+//        }
+//
+//        log.info("searchIdList length {}",searchIdList.size());
+//
+//        if(query == null){
+//            return promise.future();
+//        }
+//
+//        Contact.ContactQueryFilter nameFilter = new Contact.ContactQueryFilter();
+//        Contact.ContactQueryFilter aliasFilter = new Contact.ContactQueryFilter();
+//        nameFilter.setName(query);
+//        aliasFilter.setAlias(query);
+//        Future<List<String>> future = contactSearch(nameFilter, searchIdList);
+//        Future<List<String>> future1 = contactSearch(aliasFilter, searchIdList);
+//
+//        CompositeFuture compositeFuture = CompositeFuture.all(future,future1);
+//
+//        List<List<String>> list = compositeFuture.list();
+//        List<String> collect = list.stream().flatMap(Collection::stream).collect(Collectors.toList());
+//
+//        promise.complete(collect);
+//        return promise.future();
+//    }
 
     //TODO
     public Future<List<String>> contactSearch(Contact.ContactQueryFilter query,List<String> searchIdList){
-        log.info("query {},searchIdList {}",query,searchIdList);
-
-        Promise<List<String>> promise = Promise.promise();
-
-        if(CollectionUtils.isEmpty(searchIdList)){
-            Future<List<String>> listFuture = contactList();
-            searchIdList= listFuture.result();
-        }
-
-        log.info("searchIdList length {}",searchIdList.size());
-
-        if(query == null){
-            promise.complete(searchIdList);
-            return promise.future();
-        }
-
-        return promise.future();
-    }
-
-    public Future<Boolean> contactValidate(String contactId){
-        log.info("contactValidate {} base class just return `true`", contactId);
-        Promise<Boolean> promise = Promise.promise();
-        promise.complete(true);
-        return promise.future();
+//        log.info("query {},searchIdList {}",query,searchIdList);
+//
+//        Promise<List<String>> promise = Promise.promise();
+//
+//        if(CollectionUtils.isEmpty(searchIdList)){
+//            Future<List<String>> listFuture = contactList();
+//            searchIdList= listFuture.result();
+//        }
+//
+//        log.info("searchIdList length {}",searchIdList.size());
+//
+//        if(query == null){
+//            promise.complete(searchIdList);
+//            return promise.future();
+//        }
+//
+//        return promise.future();
+//    }
+//
+//    public Future<Boolean> contactValidate(String contactId){
+//        log.info("contactValidate {} base class just return `true`", contactId);
+//        Promise<Boolean> promise = Promise.promise();
+//        promise.complete(true);
+//        return promise.future();
+        return null;
     }
 
     protected Future<Contact.ContactPayload> contactPayloadCache(String contactId){
 
-        Preconditions.checkNotNull(contactId);
-
-        Promise<Contact.ContactPayload> promise = Promise.promise();
-
-        Contact.ContactPayload contactPayload = cacheContactPayload.get(contactId, key -> {
-            Future<Contact.ContactPayload> contactPayloadFuture = contactPayload(key);
-            return contactPayloadFuture.result();
-        });
-
-
-        if(contactPayload == null){
-            promise.complete();
-            log.info("contactPayload {} cache MISS",contactId);
-        }else {
-            promise.complete(contactPayload);
-        }
-
-        return promise.future();
+//        Preconditions.checkNotNull(contactId);
+//
+//        Promise<Contact.ContactPayload> promise = Promise.promise();
+//
+//        Contact.ContactPayload contactPayload = cacheContactPayload.get(contactId, key -> {
+//            Future<Contact.ContactPayload> contactPayloadFuture = contactPayload(key);
+//            return contactPayloadFuture.result();
+//        });
+//
+//
+//        if(contactPayload == null){
+//            promise.complete();
+//            log.info("contactPayload {} cache MISS",contactId);
+//        }else {
+//            promise.complete(contactPayload);
+//        }
+//
+//        return promise.future();
+        return null;
     }
 
     protected Future<Contact.ContactPayload> contactPayload(String contactId){
@@ -315,27 +313,62 @@ public abstract class Puppet {
 
 
     public Future<RoomPayload> roomPayload(String roomId){
-        Preconditions.checkNotNull(roomId);
-        Promise<RoomPayload> promise = Promise.promise();
-        RoomPayload roomPayload = roomPayloadCache(roomId);
-        promise.complete(roomPayload);
-        return promise.future();
+//        Preconditions.checkNotNull(roomId);
+//        Promise<RoomPayload> promise = Promise.promise();
+//        RoomPayload roomPayload = roomPayloadCache(roomId);
+//        promise.complete(roomPayload);
+//        return promise.future();
+        return null;
     }
 
     protected RoomPayload roomPayloadCache(String roomId){
 
         Preconditions.checkNotNull(roomId);
         return cacheRoomPayload.get(roomId, key -> {
-            Future<Object> future = roomRawPayload(key);
-            Object result = future.result();
+                Future<Object> future = roomRawPayload(key);
+            Object result = null;
+            try {
+                result = future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
             Future<RoomPayload> roomPayloadFuture = roomRawPayloadParser(result);
-            return roomPayloadFuture.result();
+            try {
+                return roomPayloadFuture.get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+            return null;
         });
+
+
     }
 
+    /**
+     *
+     * Friendship
+     *
+     */
+
+    public abstract Future<Void> friendshipAccept(String friendshipId);
+    public abstract Future<Void> friendshipAdd(String contractId,String hello);
+    public abstract Future<String> friendshipSearchPhone(String phone);
+    public abstract Future<String> friendshipSearchWeixin(String weixin);
+
+    public abstract Future<Object> friendshipRwaPayload(String friendshipId);
+    public abstract Future<FriendshipPayload> friendshipRawPayloadParser(Object rwwPayload);
 
 
+    public Future<String> friendshipSearch(Friendship.FriendshipSearchCondition condition){
+        log.info("friendshipSearch{}",condition);
 
+        Preconditions.checkNotNull(condition);
 
+        if(StringUtils.isNotEmpty(condition.getPhone())){
+            return friendshipSearchPhone(condition.getPhone());
+        }else {
+            return friendshipSearchWeixin(condition.getWeixin());
+        }
+    }
 
 }

@@ -1,10 +1,11 @@
 package io.github.wechaty.grpc;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.common.collect.Lists;
 import io.github.wechaty.Puppet;
 import io.github.wechaty.schemas.Contact;
+import io.github.wechaty.schemas.Friendship;
 import io.github.wechaty.schemas.Room;
-import io.vertx.core.Future;
 import io.vertx.core.Promise;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.jackson.JacksonCodec;
@@ -17,6 +18,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 @Slf4j
 public class GrpcClient extends Puppet {
@@ -26,7 +29,6 @@ public class GrpcClient extends Puppet {
 
     private Future<String> discoverHostieIp(String token) {
 
-        Promise<String> promise = Promise.promise();
 
         OkHttpClient client = new OkHttpClient.Builder()
             .build();
@@ -48,7 +50,6 @@ public class GrpcClient extends Puppet {
             @Override
             public void onMessage(@NotNull WebSocket webSocket, @NotNull String text) {
                 Map<String, String> map = JacksonCodec.decodeValue(text, new TypeReference<Map<String, String>>() {});
-                    promise.complete(map.get("payload"));
             }
 
             @Override
@@ -59,12 +60,11 @@ public class GrpcClient extends Puppet {
             @Override
             public void onFailure(@NotNull WebSocket webSocket, @NotNull Throwable t, @Nullable Response response) {
                 log.error("response {}",response,t);
-                promise.fail(t);
                 super.onFailure(webSocket, t, response);
             }
         });
 
-        return promise.future();
+        return CompletableFuture.completedFuture("test");
     }
 
 
@@ -185,7 +185,17 @@ public class GrpcClient extends Puppet {
 
     @Override
     public Future<List<String>> roomList() {
-        return null;
+
+        CompletableFuture<List<String>> future = CompletableFuture.supplyAsync(()->{
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return Lists.newArrayList("1","2");
+        });
+
+        return future;
     }
 
     @Override
@@ -218,13 +228,33 @@ public class GrpcClient extends Puppet {
         return null;
     }
 
-    public static void main(String[] args) {
+    @Override
+    public Future<Void> friendshipAccept(String friendshipId) {
+        return null;
+    }
 
-        GrpcClient grpcClient = new GrpcClient();
+    @Override
+    public Future<Void> friendshipAdd(String contractId, String hello) {
+        return null;
+    }
 
-        Future<String> future = grpcClient.discoverHostieIp("test");
+    @Override
+    public Future<String> friendshipSearchPhone(String phone) {
+        return null;
+    }
 
-        System.out.println(future.result());
+    @Override
+    public Future<String> friendshipSearchWeixin(String weixin) {
+        return null;
+    }
 
+    @Override
+    public Future<Object> friendshipRwaPayload(String friendshipId) {
+        return null;
+    }
+
+    @Override
+    public Future<Friendship.FriendshipPayload> friendshipRawPayloadParser(Object rwwPayload) {
+        return null;
     }
 }
