@@ -14,6 +14,6 @@ public class PuppetOptions {
     private Long timeout;
     private String token;
 
-    private String puttetOptionKey;
+    private String puppetOptionKey;
 
 }
