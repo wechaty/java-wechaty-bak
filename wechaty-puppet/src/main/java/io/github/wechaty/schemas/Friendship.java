@@ -1,5 +1,9 @@
 package io.github.wechaty.schemas;
 
+import java.util.List;
+
+import org.checkerframework.checker.units.qual.s;
+
 import io.vertx.core.Vertx;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -83,5 +87,11 @@ public class Friendship {
     public static class FriendshipSearchCondition{
         private String phone;
         private String weixin;
+    }
+
+    @Data
+    @ToString
+    public static class FriendshipQueryFilter{
+        private List<FriendshipSearchCondition> list;
     }
 }
