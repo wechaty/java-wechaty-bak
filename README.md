@@ -224,7 +224,9 @@ WIP...
 mvn install wechaty
 ```
 
-## See Also
+## Links
+
+1. [Publish Java Module to Maven Central Repo - OSSRH Guide](https://central.sonatype.org/pages/ossrh-guide.html)
 
 ## History
 
