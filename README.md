@@ -227,6 +227,7 @@ mvn install wechaty
 ## Links
 
 1. [Publish Java Module to Maven Central Repo - OSSRH Guide](https://central.sonatype.org/pages/ossrh-guide.html)
+1. [Kotlin vs Java: Most Important Differences That You Must Know](https://hackr.io/blog/kotlin-vs-java)
 
 ## History
 
@@ -234,7 +235,8 @@ mvn install wechaty
 
 ### v0.0.1 (Mar 12, 2020)
 
-Project created.
+1. Project created.
+1. First contributor joined: [@diaozxin007](https://github.com/diaozxin007) Zhengxin DIAO (刁政欣)
 
 ## Related Projects
 
